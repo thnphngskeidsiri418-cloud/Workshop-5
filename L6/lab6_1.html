@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 6.1: ระบบแปลงหน่วยวัด (Switch-Case)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
+
+    <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md border border-slate-100">
+        <h2 class="text-2xl font-bold text-center text-indigo-600 mb-6">🔄 ระบบแปลงหน่วยวัด (Lab 6.1)</h2>
+        
+        <form id="converterForm" onsubmit="performConversion(event)" class="space-y-5">
+            
+            <div>
+                <label for="inputValue" class="block font-medium text-slate-700 mb-2">ระบุค่าที่ต้องการแปลง:</label>
+                <input type="number" id="inputValue" step="any" placeholder="กรอกตัวเลข..." required
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg">
+            </div>
+
+            <div>
+                <label for="conversionType" class="block font-medium text-slate-700 mb-2">เลือกประเภทการแปลงหน่วย:</label>
+                <select id="conversionType" onchange="updateLabels()"
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-slate-800">
+                    <option value="kg_to_lbs">⚖️ กิโลกรัม (kg) ➔ ปอนด์ (lbs)</option>
+                    <option value="c_to_f">🌡️ เซลเซียส (°C) ➔ ฟาเรนไฮต์ (°F)</option>
+                    <option value="km_to_miles">📍 กิโลเมตร (km) ➔ ไมล์ (miles)</option>
+                </select>
+            </div>
+
+            <button type="submit" 
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
+                คำนวณผลการแปลงหน่วย
+            </button>
+        </form>
+
+        <div id="resultBox" class="mt-6 bg-indigo-50 p-5 rounded-xl border-l-4 border-indigo-500 hidden animate-fade-in">
+            <h3 class="font-semibold text-indigo-800 mb-2">ผลลัพธ์การคำนวณ:</h3>
+            <p class="text-slate-600 text-sm">
+                ค่าเริ่มต้น: <span id="lblOriginalValue" class="font-medium text-slate-900"></span>
+            </p>
+            <div class="mt-2 pt-2 border-t border-indigo-200 flex justify-between items-baseline">
+                <span class="text-slate-700 font-medium">ผลการแปลงได้เป็น:</span>
+                <span id="lblResultValue" class="text-2xl font-bold text-indigo-600"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ฟังก์ชันอัปเดตหน้าตา Placeholder เพื่อความลื่นไหล (Optional)
+        function updateLabels() {
+            document.getElementById("resultBox").classList.add("hidden");
+        }
+
+        // 3. ฟังก์ชันหลักใช้ประมวลผลและคำนวณผ่าน switch-case (ตามเกณฑ์ข้อ 3)
+        function performConversion(event) {
+            event.preventDefault();
+
+            // ดึงค่า input และประเภทที่เลือกมาจากหน้าฟอร์ม
+            const inputVal = parseFloat(document.getElementById("inputValue").value);
+            const conversionType = document.getElementById("conversionType").value;
+
+            let result = 0;
+            let fromUnit = "";
+            let toUnit = "";
+
+            // โครงสร้างตรรกะคำนวณแบบ switch-case ตามเงื่อนไขโจทย์
+            switch (conversionType) {
+                case "kg_to_lbs":
+                    // สูตรแปลง กิโลกรัม เป็น ปอนด์ (1 kg ≈ 2.20462 lbs)
+                    result = inputVal * 2.20462;
+                    fromUnit = "กิโลกรัม (kg)";
+                    toUnit = "ปอนด์ (lbs)";
+                    break;
+
+                case "c_to_f":
+                    // สูตรแปลง เซลเซียส เป็น ฟาเรนไฮต์ (°C × 9/5 + 32)
+                    result = (inputVal * 9/5) + 32;
+                    fromUnit = "เซลเซียส (°C)";
+                    toUnit = "ฟาเรนไฮต์ (°F)";
+                    break;
+
+                case "km_to_miles":
+                    // สูตรแปลง กิโลเมตร เป็น ไมล์ (1 km ≈ 0.621371 miles)
+                    result = inputVal * 0.621371;
+                    fromUnit = "กิโลเมตร (km)";
+                    toUnit = "ไมล์ (miles)";
+                    break;
+
+                default:
+                    alert("เกิดข้อผิดพลาด: ไม่พบประเภทการแปลงหน่วย");
+                    return;
+            }
+
+            // นำผลลัพธ์ทศนิยม 4 ตำแหน่งไป Render แสดงผลบนหน้าจอหน้าเว็บ
+            document.getElementById("lblOriginalValue").innerText = `${inputVal.toLocaleString()} ${fromUnit}`;
+            document.getElementById("lblResultValue").innerText = `${result.toFixed(4)} ${toUnit}`;
+
+            // สั่งเปิดแสดงกล่องผลลัพธ์
+            document.getElementById("resultBox").classList.remove("hidden");
+        }
+    </script>
+
+</body>
+</html>

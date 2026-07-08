@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3.2: ฟอร์มคำนวณค่างวดรถยนต์</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; padding: 30px; color: #1e293b; }
+        .container { max-width: 800px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #0f172a; margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 8px; color: #475569; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; }
+        input[readonly] { background-color: #f8fafc; color: #64748b; cursor: not-allowed; border-color: #e2e8f0; }
+        button { width: 100%; padding: 14px; background-color: #0f766e; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #115e59; }
+        .result-box { margin-top: 30px; background: #f0fdfa; border-left: 5px solid #14b8a6; padding: 20px; border-radius: 6px; display: none; }
+        .result-box h3 { margin-top: 0; color: #0f766e; }
+        .table-container { margin-top: 30px; overflow-x: auto; display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: right; }
+        th { background-color: #f8fafc; color: #1e293b; text-align: center; }
+        td:first-child { text-align: center; font-weight: bold; color: #0f766e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ฟอร์มคำนวณค่างวดรถยนต์ (Lab 3.2)</h2>
+    
+    <form id="carLoanForm" onsubmit="calculateCarLoan(event)">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="carPrice">ราคารถยนต์ (บาท):</label>
+                <input type="number" id="carPrice" placeholder="เช่น 800000" required min="1" oninput="updateLoanAmount()">
+            </div>
+
+            <div class="form-group">
+                <label for="downPayment">เงินดาวน์ (บาท):</label>
+                <input type="number" id="downPayment" placeholder="เช่น 200000" required min="0" oninput="updateLoanAmount()">
+            </div>
+
+            <div class="form-group">
+                <label for="loanAmount">จำนวนเงินกู้สุทธิ (บาท):</label>
+                <input type="text" id="loanAmount" value="0" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="interestRate">อัตราดอกเบี้ย (% ต่อปี - Flat Rate):</label>
+                <input type="number" id="interestRate" step="0.01" value="2.50" required>
+            </div>
+
+            <div class="form-group">
+                <label for="months">ระยะเวลาผ่อนชำระ (เดือน):</label>
+                <select id="months">
+                    <option value="12">12 เดือน (1 ปี)</option>
+                    <option value="24">24 เดือน (2 ปี)</option>
+                    <option value="36">36 เดือน (3 ปี)</option>
+                    <option value="48" selected>48 เดือน (4 ปี)</option>
+                    <option value="60">60 เดือน (5 ปี)</option>
+                    <option value="72">72 เดือน (6 ปี)</option>
+                    <option value="84">84 เดือน (7 ปี)</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit">คำนวณค่างวดและตารางผ่อนชำระ</button>
+    </form>
+
+    <div class="result-box" id="resultSummary"></div>
+
+    <div class="table-container" id="tableContainer">
+        <h3>ตารางรายละเอียดการผ่อนชำระแบบย่อ (สรุปรายปี/ทุก 12 เดือน)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>สิ้นสุดปีที่</th>
+                    <th>จำนวนงวดที่ผ่อนแล้ว</th>
+                    <th>ค่างวดสะสม (บาท)</th>
+                    <th>ดอกเบี้ยสะสม (บาท)</th>
+                    <th>เงินต้นสะสม (บาท)</th>
+                    <th>เงินต้นคงเหลือ (บาท)</th>
+                </tr>
+            </thead>
+            <tbody id="paymentSchedule"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // ฟังก์ชันคำนวณยอดเงินกู้สุทธิอัตโนมัติ (ราคารถ - เงินดาวน์)
+    function updateLoanAmount() {
+        let carPrice = parseFloat(document.getElementById("carPrice").value) || 0;
+        let downPayment = parseFloat(document.getElementById("downPayment").value) || 0;
+        let loanAmount = carPrice - downPayment;
+        
+        if(loanAmount < 0) {
+            document.getElementById("loanAmount").value = "เงินดาวน์เกินราคารถ";
+        } else {
+            document.getElementById("loanAmount").value = loanAmount.toLocaleString('th-TH');
+        }
+    }
+
+    function calculateCarLoan(event) {
+        event.preventDefault();
+
+        let carPrice = parseFloat(document.getElementById("carPrice").value);
+        let downPayment = parseFloat(document.getElementById("downPayment").value);
+        let loanAmount = carPrice - downPayment;
+        let annualInterestRate = parseFloat(document.getElementById("interestRate").value);
+        let totalMonths = parseInt(document.getElementById("months").value);
+
+        // Validation เบื้องต้น
+        if (loanAmount <= 0) {
+            alert("จำนวนเงินดาวน์ต้องน้อยกว่าราคารถยนต์");
+            return;
+        }
+
+        // --- สูตรคำนวณเช่าซื้อรถยนต์ (Flat Rate) ---
+        // 1. หาดอกเบี้ยรวมทั้งหมด = เงินกู้สุทธิ * (ดอกเบี้ยต่อปี/100) * จำนวนปี
+        let totalYears = totalMonths / 12;
+        let totalInterest = loanAmount * (annualInterestRate / 100) * totalYears;
+
+        // 2. ยอดรวมที่ต้องจ่ายทั้งหมด = เงินกู้สุทธิ + ดอกเบี้ยรวม
+        let totalDebt = loanAmount + totalInterest;
+
+        // 3. ค่างวดต่อเดือน = ยอดรวมทั้งหมด / จำนวนเดือน
+        let monthlyPayment = totalDebt / totalMonths;
+
+        // คำนวณรายเดือนไว้ใช้สำหรับแจกแจงตารางแบบย่อ
+        let monthlyPrincipal = loanAmount / totalMonths;
+        let monthlyInterest = totalInterest / totalMonths;
+
+        // แสดงผลสรุปทางภาพรวม
+        let summaryHtml = `
+            <h3>สรุปผลการคำนวณสินเชื่อรถยนต์</h3>
+            <p><strong>ราคารถยนต์:</strong> ${carPrice.toLocaleString('th-TH')} บาท</p>
+            <p><strong>เงินดาวน์:</strong> ${downPayment.toLocaleString('th-TH')} บาท</p>
+            <p><strong>ยอดจัด/เงินกู้สุทธิ:</strong> <span style="color: #0f766e;">${loanAmount.toLocaleString('th-TH')}</span> บาท</p>
+            <p><strong>อัตราดอกเบี้ย:</strong> ${annualInterestRate.toFixed(2)}% ต่อปี (Flat Rate)</p>
+            <p><strong>ระยะเวลาผ่อนชำระ:</strong> ${totalMonths} เดือน (${totalYears} ปี)</p>
+            <p style="font-size: 18px; color: #0f766e;"><strong>ค่างวดผ่อนชำระ:</strong> <strong>${monthlyPayment.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> บาท/เดือน</p>
+            <p><strong>ดอกเบี้ยรวมทั้งสิ้น:</strong> <span style="color: #dc2626;">${totalInterest.toLocaleString('th-TH', {minimumFractionDigits: 2})}</span> บาท</p>
+            <p><strong>ยอดรวมที่ต้องจ่ายตลอดสัญญา (ไม่รวมเงินดาวน์):</strong> ${totalDebt.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท</p>
+        `;
+        
+        let resultSummary = document.getElementById("resultSummary");
+        resultSummary.innerHTML = summaryHtml;
+        resultSummary.style.display = "block";
+
+        // สร้างตารางผ่อนชำระแบบย่อ (สรุปผลทุก 12 งวด หรือ ทุก 1 ปี)
+        let tbody = document.getElementById("paymentSchedule");
+        tbody.innerHTML = ""; 
+
+        let accPayment = 0;
+        let accInterest = 0;
+        let accPrincipal = 0;
+        let remainingPrincipal = loanAmount;
+
+        for (let m = 1; m <= totalMonths; m++) {
+            accPayment += monthlyPayment;
+            accInterest += monthlyInterest;
+            accPrincipal += monthlyPrincipal;
+            remainingPrincipal -= monthlyPrincipal;
+
+            // แสดงผลสรุปในตารางทุกๆ 12 เดือน (หรือเดือนสุดท้ายของสัญญา)
+            if (m % 12 === 0 || m === totalMonths) {
+                let currentYear = Math.ceil(m / 12);
+                let row = `
+                    <tr>
+                        <td>ปีที่ ${currentYear}</td>
+                        <td>${m} งวด</td>
+                        <td>${accPayment.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td>${accInterest.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td>${accPrincipal.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td>${Math.max(0, remainingPrincipal).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            }
+        }
+
+        document.getElementById("tableContainer").style.display = "block";
+    }
+</script>
+
+</body>
+</html>

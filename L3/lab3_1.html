@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3.1: ฟอร์มคำนวณสินเชื่อบ้าน</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; padding: 30px; color: #334155; }
+        .container { max-width: 800px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #0f172a; margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: span 2; }
+        label { font-weight: bold; margin-bottom: 8px; color: #475569; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; }
+        button { width: 100%; padding: 14px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #1d4ed8; }
+        .result-box { margin-top: 30px; background: #eff6ff; border-left: 5px solid #3b82f6; padding: 20px; border-radius: 6px; display: none; }
+        .result-box h3 { margin-top: 0; color: #1d4ed8; }
+        .table-container { margin-top: 30px; overflow-x: auto; display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: right; }
+        th { background-color: #f1f5f9; color: #1e293b; text-align: center; }
+        td:first-child { text-align: center; }
+        .error-msg { color: #dc2626; font-size: 14px; margin-top: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ฟอร์มคำนวณสินเชื่อบ้าน (Lab 3.1)</h2>
+    
+    <form id="loanForm" onsubmit="calculateLoan(event)">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="salary">เงินเดือนปัจจุบัน (บาท):</label>
+                <input type="number" id="salary" placeholder="เช่น 30000" required min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="loanAmount">จำนวนเงินที่ต้องการกู้ (บาท):</label>
+                <input type="number" id="loanAmount" placeholder="เช่น 2000000" required min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="interestRate">อัตราดอกเบี้ย (% ต่อปี):</label>
+                <input type="number" id="interestRate" step="0.01" value="5.0" required>
+            </div>
+
+            <div class="form-group">
+                <label for="years">ระยะเวลาผ่อนชำระ (ปี):</label>
+                <select id="years">
+                    <option value="10">10 ปี (120 งวด)</option>
+                    <option value="20">20 ปี (240 งวด)</option>
+                    <option value="30" selected>30 ปี (360 งวด)</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit">คำนวณสินเชื่อและตารางผ่อนชำระ</button>
+    </form>
+
+    <div class="result-box" id="resultSummary"></div>
+
+    <div class="table-container" id="tableContainer">
+        <h3>ตารางรายละเอียดการผ่อนชำระแต่ละงวด</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>งวดที่</th>
+                    <th>ค่างวด (บาท)</th>
+                    <th>ดอกเบี้ย (บาท)</th>
+                    <th>เงินต้น (บาท)</th>
+                    <th>เงินต้นคงเหลือ (บาท)</th>
+                </tr>
+            </thead>
+            <tbody id="paymentSchedule"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function calculateLoan(event) {
+        event.preventDefault();
+
+        // ดึงข้อมูลและแปลงค่า
+        let monthlySalary = parseFloat(document.getElementById("salary").value);
+        let loanAmount = parseFloat(document.getElementById("loanAmount").value);
+        let annualInterestRate = parseFloat(document.getElementById("interestRate").value);
+        let years = parseInt(document.getElementById("years").value);
+
+        // ข้อกำหนดที่ 2: วงเงินกู้สูงสุดต้องไม่เกิน 200 เท่าของเงินเดือน
+        let maxLoan = monthlySalary * 200;
+        if (loanAmount > maxLoan) {
+            alert(`ขออภัย! วงเงินกู้ของคุณเกินสิทธิ์สูงสุด\nวงเงินกู้สูงสุดของคุณคือ ${maxLoan.toLocaleString('th-TH')} บาท (คำนวณจาก 200 เท่าของเงินเดือน)`);
+            return;
+        }
+
+        // แปลงปีเป็นเดือน และดอกเบี้ยรายปีเป็นรายเดือน
+        let months = years * 12;
+        let interestRateMonthly = (annualInterestRate / 12) / 100;
+
+        // คำนวณค่างวดรายเดือน (สูตร PMT)
+        let monthlyPayment = 0;
+        if (interestRateMonthly === 0) {
+            monthlyPayment = loanAmount / months;
+        } else {
+            monthlyPayment = (loanAmount * interestRateMonthly * Math.pow(1 + interestRateMonthly, months)) / (Math.pow(1 + interestRateMonthly, months) - 1);
+        }
+
+        // 1. แสดงผลการสรุปทางภาพรวม
+        let totalPayment = monthlyPayment * months;
+        let totalInterest = totalPayment - loanAmount;
+
+        let summaryHtml = `
+            <h3>สรุปสินเชื่อบ้าน</h3>
+            <p><strong>วงเงินกู้ที่อนุมัติ:</strong> ${loanAmount.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท (วงเงินสูงสุดที่กู้ได้ตามฐานเงินเดือน: ${maxLoan.toLocaleString('th-TH')} บาท)</p>
+            <p><strong>อัตราดอกเบี้ย:</strong> ${annualInterestRate.toFixed(2)}% ต่อปี (${(annualInterestRate/12).toFixed(4)}% ต่อเดือน)</p>
+            <p><strong>ระยะเวลาผ่อนชำระ:</strong> ${years} ปี (${months} งวด)</p>
+            <p style="font-size: 18px; color: #1d4ed8;"><strong>ค่างวดต่อเดือน:</strong> ${monthlyPayment.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท/เดือน</p>
+            <p><strong>ยอดชำระรวมทั้งสิ้นตลอดสัญญา:</strong> ${totalPayment.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท</p>
+            <p style="color: #dc2626;"><strong>ดอกเบี้ยรวมทั้งสิ้น:</strong> ${totalInterest.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท</p>
+        `;
+        
+        let resultSummary = document.getElementById("resultSummary");
+        resultSummary.innerHTML = summaryHtml;
+        resultSummary.style.display = "block";
+
+        // 2. สร้างตารางผ่อนชำระลดต้นลดดอกรายงวด
+        let tbody = document.getElementById("paymentSchedule");
+        tbody.innerHTML = ""; // เคลียร์ตารางเก่า
+        
+        let remainingPrincipal = loanAmount;
+
+        for (let i = 1; i <= months; i++) {
+            let interestPayment = remainingPrincipal * interestRateMonthly; // ดอกเบี้ยงวดนั้น
+            let principalPayment = monthlyPayment - interestPayment;       // เงินต้นที่หักงวดนั้น
+            
+            // จัดการงวดสุดท้ายเพื่อป้องกันเศษทศนิยมคลาดเคลื่อน
+            if (i === months) {
+                monthlyPayment = remainingPrincipal + interestPayment;
+                principalPayment = remainingPrincipal;
+                remainingPrincipal = 0;
+            } else {
+                remainingPrincipal -= principalPayment;
+            }
+
+            let row = `
+                <tr>
+                    <td>${i}</td>
+                    <td>${monthlyPayment.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td>${interestPayment.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td>${principalPayment.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td>${Math.max(0, remainingPrincipal).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        }
+
+        document.getElementById("tableContainer").style.display = "block";
+    }
+</script>
+
+</body>
+</html>

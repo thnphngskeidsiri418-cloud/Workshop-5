@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 1.5: House Loan Calculator</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; padding: 30px; color: #333; }
+        .calc-container { max-width: 600px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a365d; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568; }
+        input[type="number"], select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input:readonly { background-color: #edf2f7; color: #4a5568; font-weight: bold; }
+        button { width: 100%; padding: 14px; background-color: #1a365d; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #2b6cb0; }
+        .result-section { margin-top: 30px; background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; border-radius: 6px; display: none; }
+        .result-section h3 { margin-top: 0; color: #2b6cb0; }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 5px; }
+        .result-row:last-child { border:none; }
+        .highlight { font-weight: bold; color: #2c5282; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<div class="calc-container">
+    <h2>โปรแกรมคำนวณเงินกู้ซื้อบ้าน (Lab 1.5)</h2>
+    
+    <form id="loanForm" onsubmit="calculateLoan(event)">
+        <div class="form-group">
+            <label for="homePrice">ราคาบ้าน (บาท):</label>
+            <input type="number" id="homePrice" placeholder="เช่น 3000000" required oninput="updateLoanAmount()">
+        </div>
+
+        <div class="form-group">
+            <label for="downPayment">เงินดาวน์ (บาท):</label>
+            <input type="number" id="downPayment" placeholder="เช่น 3000000" required oninput="updateLoanAmount()">
+        </div>
+
+        <div class="form-group">
+            <label for="loanAmount">วงเงินกู้ (คำนวณอัตโนมัติ):</label>
+            <input type="number" id="loanAmount" readonly value="0">
+        </div>
+
+        <div class="form-group">
+            <label for="interestRate">อัตราดอกเบี้ย (% ต่อปี):</label>
+            <input type="number" id="interestRate" step="0.01" placeholder="เช่น 5" required>
+        </div>
+
+        <div class="form-group">
+            <label for="loanTerm">ระยะเวลาผ่อนชำระ (ปี):</label>
+            <select id="loanTerm">
+                <option value="10">10 ปี (120 งวด)</option>
+                <option value="20">20 ปี (240 งวด)</option>
+                <option value="30" selected>30 ปี (360 งวด)</option>
+            </select>
+        </div>
+
+        <button type="submit">คำนวณเงินกู้</button>
+    </form>
+
+    <div class="result-section" id="resultBox">
+        <h3>ผลการคำนวณ</h3>
+        <div class="result-row">
+            <span>วงเงินกู้สุทธิ:</span>
+            <span id="resLoanAmount" class="highlight">0.00</span> บาท
+        </div>
+        <div class="result-row">
+            <span>ยอดผ่อนชำระต่อเดือน:</span>
+            <span id="resMonthlyPayment" class="highlight" style="color: #dd6b20;">0.00</span> บาท/เดือน
+        </div>
+        <div class="result-row">
+            <span>ยอดชำระรวมตลอดสัญญา:</span>
+            <span id="resTotalPayment">0.00</span> บาท
+        </div>
+        <div class="result-row">
+            <span>ดอกเบี้ยจ่ายรวมทั้งหมด:</span>
+            <span id="resTotalInterest" style="color: #e53e3e;">0.00</span> บาท
+        </div>
+    </div>
+</div>
+
+<script>
+    // ฟังก์ชันคำนวณวงเงินกู้อัตโนมัติเมื่อมีการกรอก ราคาบ้าน หรือ เงินดาวน์
+    function updateLoanAmount() {
+        let homePrice = parseFloat(document.getElementById("homePrice").value) || 0;
+        let downPayment = parseFloat(document.getElementById("downPayment").value) || 0;
+        let loanAmount = homePrice - downPayment;
+        
+        // วงเงินกู้ต้องไม่ติดลบ
+        document.getElementById("loanAmount").value = loanAmount > 0 ? loanAmount : 0;
+    }
+
+    // ฟังก์ชันคำนวณสินเชื่อบ้านตามสูตรการเงิน
+    function calculateLoan(event) {
+        event.preventDefault();
+
+        let loanAmount = parseFloat(document.getElementById("loanAmount").value) || 0;
+        let annualInterestRate = parseFloat(document.getElementById("interestRate").value) || 0;
+        let years = parseInt(document.getElementById("loanTerm").value) || 0;
+
+        if (loanAmount <= 0) {
+            alert("วงเงินกู้ต้องมากกว่า 0 บาท (กรุณาเช็กราคาบ้านและเงินดาวน์)");
+            return;
+        }
+
+        // แปลงปีเป็นงวดเดือน และดอกเบี้ยปีเป็นดอกเบี้ยเดือน
+        let n = years * 12; 
+        let r = (annualInterestRate / 12) / 100; 
+
+        let monthlyPayment = 0;
+
+        // ตรวจสอบกรณีดอกเบี้ยเป็น 0%
+        if (r === 0) {
+            monthlyPayment = loanAmount / n;
+        } else {
+            // สูตรคำนวณ PMT แบบลดต้นลดดอกรายเดือน
+            monthlyPayment = (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        }
+
+        let totalPayment = monthlyPayment * n;
+        let totalInterest = totalPayment - loanAmount;
+
+        // นำค่าไปแสดงบนหน้าเว็บพร้อมจัดฟอร์แมตตัวเลขให้มีคอมมา (toLocaleString)
+        document.getElementById("resLoanAmount").innerText = loanAmount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById("resMonthlyPayment").innerText = monthlyPayment.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById("resTotalPayment").innerText = totalPayment.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById("resTotalInterest").innerText = totalInterest.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        // เปิดส่วนแสดงผลลัพธ์
+        document.getElementById("resultBox").style.display = "block";
+
+        // แสดงผลลัพธ์ทดสอบใน Console ตามเกณฑ์แล็บ
+        console.log("--- ผลคำนวณ Lab 1.5 ---");
+        console.log("วงเงินกู้:", loanAmount);
+        console.log("ผ่อนต่อเดือน:", monthlyPayment);
+        console.log("จ่ายรวม:", totalPayment);
+    }
+</script>
+
+</body>
+</html>

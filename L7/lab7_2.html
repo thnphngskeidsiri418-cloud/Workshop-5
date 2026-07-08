@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 7.2: ระบบจัดการสินค้าพร้อมระบบ Import/Export JSON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+        <h2 class="text-2xl font-bold text-slate-800 mb-2 text-center md:text-left">🛒 ระบบค้นหา เรียงลำดับ และสำรองข้อมูลสินค้า (Lab 7.2)</h2>
+        <p class="text-slate-500 text-sm mb-6 text-center md:text-left">วิชา CSI204: เพิ่มฟังก์ชันดาวน์โหลด (Export) และอัปโหลด (Import) ข้อมูลด้วยไฟล์ JSON</p>
+        
+        <div class="bg-slate-800 p-4 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between text-white">
+            <div class="flex items-center gap-2">
+                <span class="text-xl">💾</span>
+                <span class="font-medium text-sm sm:text-base">ระบบจัดการไฟล์สำรองข้อมูล (JSON):</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="exportToJSON()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-sm flex items-center gap-1">
+                    📥 ดาวน์โหลดไฟล์ JSON (Export)
+                </button>
+                
+                <label class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-sm flex items-center gap-1 cursor-pointer">
+                    📤 อัปโหลดไฟล์ JSON (Import)
+                    <input type="file" id="importFile" accept=".json" onchange="importFromJSON(event)" class="hidden">
+                </label>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 p-5 rounded-xl mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="searchInput" class="block text-sm font-semibold text-slate-700 mb-2">🔍 ค้นหาชื่อสินค้า:</label>
+                <input type="text" id="searchInput" oninput="processSearchAndSort()" placeholder="พิมพ์ชื่อสินค้าเพื่อค้นหา..." 
+                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-slate-800">
+            </div>
+
+            <div>
+                <label for="sortSelect" class="block text-sm font-semibold text-slate-700 mb-2">↕️ เรียงลำดับตามราคา:</label>
+                <select id="sortSelect" onchange="processSearchAndSort()" 
+                    class="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="none">-- เลือกรูปแบบการเรียงลำดับ --</option>
+                    <option value="low-to-high">💰 ราคาน้อย ➔ มาก (Low to High)</option>
+                    <option value="high-to-low">💎 ราคามาก ➔ น้อย (High to Low)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-800 text-white text-sm font-medium">
+                        <th class="p-4 w-20 text-center">รหัส</th>
+                        <th class="p-4">ชื่อสินค้า</th>
+                        <th class="p-4">หมวดหมู่</th>
+                        <th class="p-4 text-right">ราคา (บาท)</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody" class="divide-y divide-slate-200 text-slate-700 text-sm">
+                    </tbody>
+            </table>
+        </div>
+
+        <div id="notFoundMessage" class="hidden text-center py-12 text-slate-400 bg-slate-50 rounded-b-xl border-x border-b border-slate-200">
+            🔍 ไม่พบสินค้าที่ตรงกับคำค้นหาของคุณ
+        </div>
+    </div>
+
+    <script>
+        // ข้อมูลสินค้าเริ่มต้น (Array of Objects)
+        let products = [
+            { id: "P001", name: "หูฟังไร้สาย Sony WH-1000XM4", category: "Gadget", price: 8990 },
+            { id: "P002", name: "คีย์บอร์ด Loga Garuda PRO", category: "Gaming", price: 2490 },
+            { id: "P003", name: "เมาส์ไร้สาย Logitech G PRO X Superlight", category: "Gaming", price: 4690 },
+            { id: "P004", name: "สายชาร์จ Anker PowerLine USB-C", category: "Accessory", price: 450 },
+            { id: "P005", name: "หน้าจอเกมมิ่ง Asus TUF Gaming 24\"", category: "Monitor", price: 5900 },
+            { id: "P006", name: "แผ่นรองเมาส์หมีอ้วนใส่อวกาศ XL", category: "Accessory", price: 390 }
+        ];
+
+        // ฟังก์ชันหลักที่ทำงานร่วมกันทั้ง Search และ Sort
+        function processSearchAndSort() {
+            const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+            const sortType = document.getElementById("sortSelect").value;
+
+            // ค้นหาข้อมูล (Search)
+            let resultData = products.filter(product => {
+                return product.name.toLowerCase().includes(keyword);
+            });
+
+            // เรียงลำดับข้อมูล (Sort)
+            if (sortType === "low-to-high") {
+                resultData.sort((a, b) => a.price - b.price);
+            } else if (sortType === "high-to-low") {
+                resultData.sort((a, b) => b.price - a.price);
+            }
+
+            renderTable(resultData);
+        }
+
+        // ฟังก์ชันสำหรับจัดการแสดงข้อมูลในตาราง HTML
+        function renderTable(dataList) {
+            const tbody = document.getElementById("productTableBody");
+            const notFoundBox = document.getElementById("notFoundMessage");
+
+            tbody.innerHTML = "";
+
+            if (dataList.length === 0) {
+                notFoundBox.classList.remove("hidden");
+                return;
+            } else {
+                notFoundBox.classList.add("hidden");
+            }
+
+            const tableRows = dataList.map(product => {
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 text-center font-mono text-slate-500 font-medium">${product.id}</td>
+                        <td class="p-4 font-semibold text-slate-800">${product.name}</td>
+                        <td class="p-4 text-slate-500">${product.category}</td>
+                        <td class="p-4 text-right font-bold text-indigo-600">${product.price.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = tableRows.join("");
+        }
+
+        // ==========================================
+        // 📥 ฟังก์ชัน EXPORT: ดาวน์โหลดข้อมูลเป็นไฟล์ JSON
+        // ==========================================
+        function exportToJSON() {
+            // แปลง Array ของผลิตภัณฑ์ปัจจุบันให้กลายเป็นข้อความ JSON สวยงาม (เคาะช่องไฟ 2 ย่อหน้า)
+            const dataStr = JSON.stringify(products, null, 2);
+            
+            // สร้างก้อนข้อมูลชนิดพิเศษ (Blob) ระบุชนิดเป็นแอปพลิเคชัน JSON
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            // สร้างลิงก์ HTML สมมติ (Virtual Element) ขึ้นมาในหน่วยความจำ
+            const downloadAnchor = document.createElement('a');
+            
+            // ผูก URL ของ Blob เข้ากับลิงก์ และตั้งชื่อไฟล์ปลายทาง
+            downloadAnchor.href = URL.createObjectURL(dataBlob);
+            downloadAnchor.download = 'products_backup.json';
+            
+            // จำลองการคลิกลิงก์เพื่อเริ่มดาวน์โหลดไฟล์ลงสู่คอมพิวเตอร์ของผู้ใช้
+            downloadAnchor.click();
+            
+            // ล้างหน่วยความจำ URL หลังจากดาวน์โหลดเสร็จ
+            URL.revokeObjectURL(downloadAnchor.href);
+        }
+
+        // ==========================================
+        // 📤 ฟังก์ชัน IMPORT: โหลดไฟล์ JSON เข้าสู่ระบบ
+        // ==========================================
+        function importFromJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // ตัวอ่านไฟล์ (FileReader API)
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    // แกะข้อความในไฟล์ JSON กลับมาเป็น JavaScript Array Object
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // ตรวจสอบความถูกต้องเบื้องต้นว่าโครงสร้างที่นำเข้ามาใช่ Array หรือไม่
+                    if (Array.isArray(importedData)) {
+                        // แทนที่ข้อมูลเดิมด้วยข้อมูลใหม่ที่นำเข้ามา
+                        products = importedData;
+                        
+                        // วาดตารางใหม่ และล้างค่าช่องค้นหาเก่าออกเพื่อให้เห็นภาพทั้งหมด
+                        document.getElementById("searchInput").value = "";
+                        document.getElementById("sortSelect").value = "none";
+                        renderTable(products);
+                        
+                        alert("🎉 นำเข้าข้อมูลสินค้า (Import) สำเร็จเรียบร้อยแล้ว!");
+                    } else {
+                        alert("❌ ไฟล์ไม่ถูกต้อง: ข้อมูลภายในต้องเป็นรูปแบบอาเรย์ [ ... ]");
+                    }
+                } catch (error) {
+                    alert("❌ เกิดข้อผิดพลาด: ไม่สามารถอ่านไฟล์ JSON นี้ได้ กรุณาตรวจเช็คโครงสร้างไฟล์");
+                }
+            };
+
+            // สั่งเริ่มอ่านไฟล์ในโหมดข้อความ (Text)
+            reader.readAsText(file);
+            
+            // ล้างค่าอินพุตเพื่อยอมให้ผู้ใช้อัปโหลดไฟล์เดิมซ้ำได้ในครั้งต่อไป
+            event.target.value = '';
+        }
+
+        window.onload = function() {
+            renderTable(products);
+        };
+    </script>
+
+</body>
+</html>

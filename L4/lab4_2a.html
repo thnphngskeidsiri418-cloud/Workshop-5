@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 4.2a: เพิ่มสินค้าลง sessionStorage</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0fdf4; padding: 40px; color: #1e293b; }
+        .container { max-width: 500px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #16a34a; margin-bottom: 25px; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+        label { font-weight: bold; margin-bottom: 6px; color: #475569; }
+        input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; }
+        input:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+        .btn-add { width: 100%; padding: 12px; background-color: #16a34a; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-add:hover { background-color: #15803d; }
+        .btn-link { display: block; text-align: center; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 14px; }
+        .btn-link:hover { color: #16a34a; text-decoration: underline; }
+        .cart-count { text-align: center; font-size: 14px; color: #16a34a; margin-bottom: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>เพิ่มข้อมูลสินค้าเข้าตะกร้า (Lab 4.2a)</h2>
+    <div class="cart-count" id="cartCount">🛒 สินค้าในตะกร้าปัจจุบัน: 0 ชิ้น</div>
+
+    <form id="productForm" onsubmit="addToCart(event)">
+        <div class="form-group">
+            <label for="prodId">รหัสสินค้า (Product ID):</label>
+            <input type="text" id="prodId" placeholder="เช่น PROD001" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prodName">ชื่อสินค้า:</label>
+            <input type="text" id="prodName" placeholder="เช่น คอนโดมิเนียมศุภาลัย" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prodPrice">ราคาต่อหน่วย (บาท):</label>
+            <input type="number" id="prodPrice" placeholder="เช่น 2500000" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prodQty">จำนวน:</label>
+            <input type="number" id="prodQty" value="1" min="1" required>
+        </div>
+
+        <button type="submit" class="btn-add">➕ เพิ่มสินค้าลงในตะกร้าชั่วคราว</button>
+    </form>
+
+    <a href="lab4_2b.html" class="btn-link">🛒 ไปยังหน้าตะกร้าสินค้า (Lab 4.2b)</a>
+</div>
+
+<script>
+    // อัปเดตจำนวนสินค้าที่จองไว้ตอนเปิดหน้าจอ
+    window.onload = function() {
+        updateCartCount();
+    };
+
+    function addToCart(event) {
+        event.preventDefault();
+
+        const id = document.getElementById("prodId").value.trim();
+        const name = document.getElementById("prodName").value.trim();
+        const price = parseFloat(document.getElementById("prodPrice").value);
+        const qty = parseInt(document.getElementById("prodQty").value);
+
+        // ดึงข้อมูลตะกร้าเดิมจาก sessionStorage (ถ้าไม่มีให้ตั้งค่าเป็น Array ว่าง)
+        let cart = JSON.parse(sessionStorage.getItem("shoppingCart")) || [];
+
+        // ตรวจสอบโครงสร้าง: ถ้ามีสินค้ารหัสนี้อยู่แล้ว ให้บวกจำนวนเพิ่มเข้าไปแทน
+        const existingProductIndex = cart.findIndex(item => item.id === id);
+        if (existingProductIndex > -1) {
+            cart[existingProductIndex].qty += qty;
+        } else {
+            // ถ้ายังไม่มี ให้ push ออบเจกต์ชิ้นใหม่เข้าไปในอาเรย์
+            cart.push({ id, name, price, qty });
+        }
+
+        // แปลงกลับเป็น JSON String แล้วเซฟลง sessionStorage
+        sessionStorage.setItem("shoppingCart", JSON.stringify(cart));
+
+        alert("📥 เพิ่มสินค้าลงตะกร้าสำเร็จ!");
+        
+        // รีเซ็ตฟอร์ม และอัปเดตตัวนับตัวเลข
+        document.getElementById("productForm").reset();
+        updateCartCount();
+    }
+
+    function updateCartCount() {
+        let cart = JSON.parse(sessionStorage.getItem("shoppingCart")) || [];
+        // คำนวณจำนวนชิ้นรวม
+        let totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+        document.getElementById("cartCount").innerText = `🛒 สินค้าในตะกร้าปัจจุบัน: ${totalItems} ชิ้น`;
+    }
+</script>
+
+</body>
+</html>

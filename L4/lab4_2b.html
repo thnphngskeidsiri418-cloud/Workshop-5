@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 4.2b: รายการสินค้าในตะกร้า (sessionStorage)</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0fdf4; padding: 40px; color: #1e293b; }
+        .container { max-width: 750px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #16a34a; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 15px; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: right; }
+        th { background-color: #f0fdf4; color: #16a34a; text-align: center; font-weight: bold; }
+        td:nth-child(2) { text-align: left; } /* คอลัมน์ชื่อสินค้า */
+        td:nth-child(1) { text-align: center; } /* คอลัมน์รหัส */
+        .btn-delete { background-color: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-delete:hover { background-color: #dc2626; }
+        .total-row { font-size: 18px; font-weight: bold; background-color: #f8fafc; color: #15803d; }
+        .no-data { text-align: center; color: #94a3b8; font-weight: bold; padding: 30px 0; }
+        .btn-clear-all { display: inline-block; padding: 10px 20px; background-color: #64748b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; float: left; }
+        .btn-clear-all:hover { background-color: #475569; }
+        .btn-link { display: inline-block; padding: 10px 20px; color: #16a34a; text-decoration: none; font-weight: bold; float: right; }
+        .btn-link:hover { text-decoration: underline; }
+        .footer-actions { margin-top: 20px; overflow: hidden; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🛒 รายการสินค้าในตะกร้า (Lab 4.2b)</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>รหัสสินค้า</th>
+                <th>ชื่อสินค้า</th>
+                <th>ราคาต่อหน่วย</th>
+                <th>จำนวน</th>
+                <th>ราคารวม</th>
+                <th>จัดการ</th>
+            </tr>
+        </thead>
+        <tbody id="cartTableBody">
+            </tbody>
+    </table>
+
+    <div class="footer-actions">
+        <button class="btn-clear-all" onclick="clearCart()">🗑️ ล้างตะกร้าสินค้าทั้งหมด</button>
+        <a href="lab4_2a.html" class="btn-link">➕ กลับไปเพิ่มสินค้าเพิ่ม</a>
+    </div>
+</div>
+
+<script>
+    window.onload = function() {
+        renderCart();
+    };
+
+    function renderCart() {
+        const tbody = document.getElementById("cartTableBody");
+        let cart = JSON.parse(sessionStorage.getItem("shoppingCart")) || [];
+
+        // ล้างข้อมูลตารางเก่าก่อนวาดใหม่
+        tbody.innerHTML = "";
+
+        if (cart.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="no-data">❌ ไม่มีสินค้าในตะกร้าชั่วคราวขณะนี้</td></tr>`;
+            return;
+        }
+
+        let grandTotal = 0;
+
+        // วนลูปข้อมูลในอาเรย์ออกมาแสดงผลทีละแถว
+        cart.forEach((item, index) => {
+            let rowTotal = item.price * item.qty;
+            grandTotal += rowTotal;
+
+            let rowHtml = `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.price.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                    <td>${item.qty}</td>
+                    <td>${rowTotal.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                    <td><button class="btn-delete" onclick="removeItem(${index})">ลบ</button></td>
+                </tr>
+            `;
+            tbody.innerHTML += rowHtml;
+        });
+
+        // แทรกแถวสรุปยอดเงินรวมท้ายตาราง
+        let totalRowHtml = `
+            <tr class="total-row">
+                <td colspan="4" style="text-align: center;">ราคารวมทั้งสิ้นสุทธิ</td>
+                <td>${grandTotal.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                <td>บาท</td>
+            </tr>
+        `;
+        tbody.innerHTML += totalRowHtml;
+    }
+
+    // ฟังก์ชันสำหรับลบสินค้าออกทีละรายการด้วยการอ้างอิงตำแหน่ง Index
+    function removeItem(index) {
+        let cart = JSON.parse(sessionStorage.getItem("shoppingCart")) || [];
+        
+        // ตัดสมาชิกในอาเรย์ออก 1 ตำแหน่งตามดัชนีที่ส่งมา
+        cart.splice(index, 1);
+        
+        // อัปเดตค่ากลับเข้าไปใน sessionStorage
+        sessionStorage.setItem("shoppingCart", JSON.stringify(cart));
+        
+        // สั่งวาดหน้าจอใหม่ทันที
+        renderCart();
+    }
+
+    // ฟังก์ชันล้างตะกร้าสินค้าทั้งหมดใน Session
+    function clearCart() {
+        if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างตะกร้าสินค้าทั้งหมดชั่วคราว?")) {
+            sessionStorage.removeItem("shoppingCart");
+            renderCart();
+        }
+    }
+</script>
+
+</body>
+</html>

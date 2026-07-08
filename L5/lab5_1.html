@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 5.1: ระบบคำนวณราคาสินค้าพร้อมส่วนลด</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; padding: 40px; color: #1e293b; }
+        .container { max-width: 600px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #0284c7; margin-bottom: 25px; }
+        .product-list { margin-bottom: 25px; }
+        .product-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; background-color: #fff; transition: background-color 0.2s; }
+        .product-item:hover { background-color: #f1f5f9; }
+        .product-info { display: flex; align-items: center; gap: 12px; font-size: 16px; }
+        .product-price { font-weight: bold; color: #0284c7; }
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .summary-box { background-color: #f1f5f9; padding: 20px; border-radius: 8px; border-left: 5px solid #0284c7; font-size: 16px; line-height: 1.8; }
+        .summary-box p { margin: 5px 0; display: flex; justify-content: space-between; }
+        .total-highlight { font-size: 20px; font-weight: bold; color: #10b981; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🛒 รายการสินค้า (Lab 5.1)</h2>
+    
+    <div class="product-list" id="productContainer">
+        </div>
+
+    <div class="summary-box">
+        <p><span>รวมราคาสินค้าที่เลือก:</span> <span id="rawTotal">0.00</span> บาท</p>
+        <p><span>ส่วนลดที่ได้รับ:</span> <span id="discountPercent">0%</span> (<span id="discountAmount">0.00</span> บาท)</p>
+        <p class="total-highlight"><span>ยอดสุทธิที่ต้องชำระ:</span> <span id="netTotal">0.00</span> บาท</p>
+    </div>
+</div>
+
+<script>
+    // 1. กำหนดข้อมูลรายการสินค้าโดยใช้ Array of Objects (ตามเกณฑ์ข้อ 2)
+    const products = [
+        { id: 1, name: "หูฟังไร้สาย Bluetooth", price: 290 },
+        { id: 2, name: "คีย์บอร์ดกลไก Mechanical", price: 450 },
+        { id: 3, name: "เมาส์เกมมิ่งไร้สาย", price: 350 },
+        { id: 4, name: "แผ่นรองเมาส์ขนาดใหญ่", price: 120 },
+        { id: 5, name: "โคมไฟตั้งโต๊ะ LED", price: 180 }
+    ];
+
+    // 2. ฟังก์ชันแสดงผลรายการสินค้าบนหน้าเว็บพร้อมปุ่ม Checkbox
+    function renderProducts() {
+        const container = document.getElementById("productContainer");
+        container.innerHTML = ""; // ล้างข้อมูลเก่า
+
+        products.forEach(product => {
+            const itemHtml = `
+                <div class="product-item">
+                    <div class="product-info">
+                        <input type="checkbox" class="product-checkbox" data-price="${product.price}" onchange="calculateTotal()">
+                        <span>${product.name}</span>
+                    </div>
+                    <span class="product-price">${product.price.toLocaleString()} บาท</span>
+                </div>
+            `;
+            container.innerHTML += itemHtml;
+        });
+    }
+
+    // 3. ฟังก์ชันหลักสำหรับคำนวณราคารวมและตรวจสอบเงื่อนไขส่วนลด (if-else)
+    function calculateTotal() {
+        const checkboxes = document.querySelectorAll(".product-checkbox");
+        let rawTotal = 0;
+
+        // วนลูปบวกเงินเฉพาะสินค้าที่ถูกติ๊ก Checkbox
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                rawTotal += parseFloat(checkbox.getAttribute("data-price"));
+            }
+        });
+
+        let discountPercent = 0;
+
+        // 4. ตรรกะเงื่อนไขส่วนลดแบบ if-else ตามโจทย์ (ข้อ 5)
+        if (rawTotal > 1000) {
+            discountPercent = 15; // ยอดซื้อมากกว่า 1000 ลด 15%
+        } else if (rawTotal > 500) {
+            discountPercent = 10; // ยอดซื้อมากกว่า 500 ลด 10%
+        } else {
+            discountPercent = 0;  // ยอดซื้อไม่ถึงตามเกณฑ์ ไม่มีส่วนลด
+        }
+
+        // คำนวณมูลค่าส่วนลดและยอดเงินสุทธิ
+        const discountAmount = (rawTotal * discountPercent) / 100;
+        const netTotal = rawTotal - discountAmount;
+
+        // 5. แสดงผลลัพธ์กลับไปยังหน้าจอพร้อมฟอร์แมตทศนิยม 2 ตำแหน่ง
+        document.getElementById("rawTotal").innerText = rawTotal.toFixed(2);
+        document.getElementById("discountPercent").innerText = discountPercent + "%";
+        document.getElementById("discountAmount").innerText = discountAmount.toFixed(2);
+        document.getElementById("netTotal").innerText = netTotal.toFixed(2);
+    }
+
+    // รันฟังก์ชันวาดรายการสินค้าทันทีที่เปิดหน้าเว็บ
+    window.onload = function() {
+        renderProducts();
+    };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 5.2: ระบบคำนวณราคาสินค้ารวมค่าจัดส่ง (Switch-Case & Radio)</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; padding: 40px; color: #1e293b; }
+        .container { max-width: 550px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #4f46e5; margin-bottom: 25px; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 20px; }
+        label { font-weight: bold; margin-bottom: 8px; color: #475569; }
+        input[type="number"] { padding: 11px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; width: 100%; box-sizing: border-box; }
+        input[type="number"]:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .radio-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+        .radio-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
+        .radio-item:hover { background-color: #f8fafc; }
+        input[type="radio"] { width: 18px; height: 18px; cursor: pointer; }
+        .service-name { font-weight: 500; }
+        .service-rate { margin-left: auto; color: #4f46e5; font-weight: bold; font-size: 14px; }
+        button { width: 100%; padding: 12px; background-color: #4f46e5; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #4338ca; }
+        .result-box { margin-top: 25px; background-color: #e0e7ff; padding: 20px; border-radius: 8px; border-left: 5px solid #4f46e5; font-size: 16px; line-height: 1.8; display: none; }
+        .result-box p { margin: 5px 0; display: flex; justify-content: space-between; }
+        .total-highlight { font-size: 20px; font-weight: bold; color: #4338ca; margin-top: 10px; border-top: 1px dashed #b4c6ef; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📦 คำนวณราคาสินค้ารวมค่าจัดส่ง (Lab 5.2)</h2>
+    
+    <form id="shippingForm" onsubmit="calculateTotal(event)">
+        <div class="form-group">
+            <label for="productPrice">ราคาสินค้า (บาท):</label>
+            <input type="number" id="productPrice" placeholder="เช่น 500" min="1" required>
+        </div>
+
+        <label>รูปแบบการจัดส่ง (บวกเพิ่มจากราคาสินค้า):</label>
+        <div class="radio-group">
+            <label class="radio-item">
+                <input type="radio" name="shippingType" value="registered" checked>
+                <span class="service-name">📬 พัสดุลงทะเบียน (Registered)</span>
+                <span class="service-rate">+30 บาท</span>
+            </label>
+            <label class="radio-item">
+                <input type="radio" name="shippingType" value="ems">
+                <span class="service-name">⚡ ด่วนพิเศษ (EMS)</span>
+                <span class="service-rate">+60 บาท</span>
+            </label>
+            <label class="radio-item">
+                <input type="radio" name="shippingType" value="nextday">
+                <span class="service-name">🚀 ส่งด่วนวันถัดไป (Next Day)</span>
+                <span class="service-rate">+90 บาท</span>
+            </label>
+        </div>
+
+        <button type="submit">คำนวณยอดรวมสุทธิ</button>
+    </form>
+
+    <div class="result-box" id="resultBox">
+        <h3>สรุปยอดค่าใช้จ่าย</h3>
+        <p><span>ราคาสินค้าเริ่มต้น:</span> <span id="resPrice">0.00</span> บาท</p>
+        <p><span>รูปแบบการจัดส่ง:</span> <span id="resType">-</span></p>
+        <p><span>ค่าจัดส่ง:</span> <span id="resShipping">0.00</span> บาท</p>
+        <div class="total-highlight">
+            <span>ยอดรวมทั้งสิ้นที่ต้องชำระ:</span> <span id="resTotal">0.00</span> บาท
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateTotal(event) {
+        event.preventDefault();
+
+        // 1. ดึงราคาสินค้าจาก Input
+        const productPrice = parseFloat(document.getElementById("productPrice").value);
+        
+        // 2. ดึงค่าบริการจาก Radio Button ที่ถูกเลือก
+        const shippingType = document.querySelector('input[name="shippingType"]:checked').value;
+
+        let shippingCost = 0;
+        let typeName = "";
+
+        // 3. ตรรกะประมวลผลหาค่าจัดส่งด้วย switch-case ตามรูปแบบบริการ
+        switch (shippingType) {
+            case "registered":
+                shippingCost = 30;
+                typeName = "พัสดุลงทะเบียน (Registered)";
+                break;
+            case "ems":
+                shippingCost = 60;
+                typeName = "ด่วนพิเศษ (EMS)";
+                break;
+            case "nextday":
+                shippingCost = 90;
+                typeName = "ส่งด่วนวันถัดไป (Next Day)";
+                break;
+            default:
+                shippingCost = 0;
+                typeName = "ไม่ระบุประเภท";
+        }
+
+        // 4. คำนวณราคาสินค้า บวกกับ ค่าจัดส่ง
+        const grandTotal = productPrice + shippingCost;
+
+        // 5. แสดงผลลัพธ์ออกสู่หน้าจอหน้าเว็บ
+        document.getElementById("resPrice").innerText = productPrice.toFixed(2);
+        document.getElementById("resType").innerText = typeName;
+        document.getElementById("resShipping").innerText = shippingCost.toFixed(2);
+        document.getElementById("resTotal").innerText = grandTotal.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        // เปิดแสดงกล่องผลลัพธ์
+        document.getElementById("resultBox").style.display = "block";
+    }
+</script>
+
+</body>
+</html>

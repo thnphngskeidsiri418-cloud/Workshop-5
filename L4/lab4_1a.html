@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 4.1a: ฟอร์มเก็บข้อมูลส่วนตัว</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; padding: 40px; color: #1e293b; transition: 0.3s; }
+        .container { max-width: 500px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #0284c7; margin-bottom: 25px; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 18px; }
+        label { font-weight: bold; margin-bottom: 8px; color: #475569; }
+        input, select { padding: 11px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; }
+        input:focus, select:focus { outline: none; border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        .btn-submit { width: 100%; padding: 12px; background-color: #0284c7; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-submit:hover { background-color: #0369a1; }
+        .btn-link { display: block; text-align: center; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 14px; }
+        .btn-link:hover { color: #0284c7; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>บันทึกข้อมูลส่วนตัว (Lab 4.1a)</h2>
+    <form id="profileForm" onsubmit="saveToLocalStorage(event)">
+        <div class="form-group">
+            <label for="fullname">ชื่อ - นามสกุล:</label>
+            <input type="text" id="fullname" placeholder="เช่น ธนพงศ์ เกิดศิริ" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">อีเมล:</label>
+            <input type="email" id="email" placeholder="example@spu.ac.th" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">เบอร์โทรศัพท์:</label>
+            <input type="tel" id="phone" placeholder="เช่น 0812345678" pattern="[0-9]{9,10}" required title="กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลข 9-10 หลัก">
+        </div>
+
+        <div class="form-group">
+            <label for="themeSelect">เลือกโทนสี (Theme):</label>
+            <select id="themeSelect">
+                <option value="light">Light Mode (สว่าง)</option>
+                <option value="dark">Dark Mode (มืด)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-submit">บันทึกข้อมูลลง LocalStorage</button>
+    </form>
+
+    <a href="lab4_1b.html" class="btn-link">➡️ ไปยังหน้าแสดงผลข้อมูล (Lab 4.1b)</a>
+</div>
+
+<script>
+    function saveToLocalStorage(event) {
+        event.preventDefault();
+
+        // ดึงค่าจาก Form
+        const fullname = document.getElementById("fullname").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const theme = document.getElementById("themeSelect").value;
+
+        // บรรจุข้อมูลเป็น Object 
+        const userData = {
+            name: fullname,
+            email: email,
+            phone: phone,
+            userTheme: theme
+        };
+
+        // แปลง Object เป็น JSON String แล้วบันทึกเข้า localStorage [cite: 41, 46]
+        localStorage.setItem("userProfile", JSON.stringify(userData));
+        
+        // บันทึกสถานะ Theme แยกไว้เพื่อให้ระบุผลได้ง่าย
+        localStorage.setItem("currentTheme", theme);
+
+        alert("🎉 บันทึกข้อมูลเรียบร้อยแล้ว!");
+        
+        // ส่งหน้าจอลิงก์ไปยังหน้า b อัตโนมัติหลังบันทึกเสร็จ
+        window.location.href = "lab4_1b.html";
+    }
+
+    // โหลดไฟล์มาตรวจจับตระกูล Theme เก่าที่เคยเลือกค้างไว้ (ถ้ามี)
+    window.onload = function() {
+        const savedTheme = localStorage.getItem("currentTheme");
+        if (savedTheme === "dark") {
+            document.body.style.backgroundColor = "#1e293b";
+        }
+    }
+</script>
+
+</body>
+</html>

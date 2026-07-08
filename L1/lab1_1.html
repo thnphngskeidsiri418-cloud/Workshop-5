@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 1.1: Variables and Data Types</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Workshop #5 - Lab 1.1: ผลการแสดงชนิดข้อมูลและการแปลงค่า</h2>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // 1. สร้างตัวแปรชนิดต่าง ๆ
+        let studentName = "ธนพงศ์ เกิดศิริ"; // String
+        let studentAge = 20;               // Number
+        let isGraduated = false;           // Boolean
+        let scores = [85, 90, 78, 92];     // Array
+        let projectInfo = {                // Object
+            title: "Condo Search Website",
+            version: "1.0"
+        };
+
+        // แสดงผลลัพธ์ใน Console
+        console.log("--- ชนิดข้อมูลดั้งเดิม ---");
+        console.log("Name:", studentName, "Type:", typeof studentName);
+        console.log("Age:", studentAge, "Type:", typeof studentAge);
+        console.log("Status:", isGraduated, "Type:", typeof isGraduated);
+        console.log("Scores:", scores, "IsArray:", Array.isArray(scores));
+        console.log("Project:", projectInfo, "Type:", typeof projectInfo);
+
+        // 2. ทดสอบการแปลงชนิดข้อมูล
+        let ageStr = "25.50";
+        let convertedInt = parseInt(ageStr);      // แปลงเป็น Integer (25)
+        let convertedFloat = parseFloat(ageStr);  // แปลงเป็น Float (25.5)
+        let convertedString = String(studentAge); // แปลงเป็น String ("20")
+
+        console.log("--- ผลการแปลงชนิดข้อมูล ---");
+        console.log("parseInt('25.50'):", convertedInt, "Type:", typeof convertedInt);
+        console.log("parseFloat('25.50'):", convertedFloat, "Type:", typeof convertedFloat);
+        console.log("String(20):", convertedString, "Type:", typeof convertedString);
+
+        // 3. แสดงผลลัพธ์บนหน้าเว็บ (HTML)
+        let outputDiv = document.getElementById("output");
+        outputDiv.innerHTML = `
+            <p><strong>ชื่อนักศึกษา:</strong> ${studentName} (Type: ${typeof studentName})</p>
+            <p><strong>อายุ:</strong> ${studentAge} ปี (Type: ${typeof studentAge})</p>
+            <p><strong>สถานะจบการศึกษา:</strong> ${isGraduated} (Type: ${typeof isGraduated})</p>
+            <p><strong>คะแนนสอบ (Array):</strong> [${scores.join(", ")}]</p>
+            <p><strong>ชื่อโปรเจกต์ (Object):</strong> ${projectInfo.title}</p>
+            <hr>
+            <h3>ผลการแปลงชนิดข้อมูล (Data Type Conversion)</h3>
+            <p>แปลงเป็นจำนวนเต็ม ด้วย parseInt("${ageStr}") -> <strong>${convertedInt}</strong> (Type: ${typeof convertedInt})</p>
+            <p>แปลงเป็นทศนิยม ด้วย parseFloat("${ageStr}") -> <strong>${convertedFloat}</strong> (Type: ${typeof convertedFloat})</p>
+            <p>แปลงเป็นข้อความ ด้วย String(${studentAge}) -> <strong>"${convertedString}"</strong> (Type: ${typeof convertedString})</p>
+        `;
+    </script>
+</body>
+</html>

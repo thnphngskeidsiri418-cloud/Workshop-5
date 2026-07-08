@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 4.1b: หน้าแสดงข้อมูลจาก localStorage (Fixed)</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; padding: 40px; color: #1e293b; transition: background-color 0.3s, color 0.3s; }
+        .container { max-width: 500px; background: white; padding: 30px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: background-color 0.3s, color 0.3s; }
+        h2 { text-align: center; color: #0284c7; }
+        .info-box { background-color: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0; font-size: 16px; line-height: 1.8; }
+        .info-box strong { color: #0369a1; }
+        .no-data { text-align: center; color: #ef4444; font-weight: bold; padding: 20px; }
+        .btn-theme { width: 100%; padding: 11px; background-color: #4b5563; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .btn-clear { width: 100%; padding: 11px; background-color: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-clear:hover { background-color: #dc2626; }
+        .btn-link { display: block; text-align: center; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 14px; }
+        
+        /* Dark Mode Classes */
+        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
+        body.dark-mode .container { background-color: #1e293b; color: #f8fafc; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        body.dark-mode .info-box { background-color: #334155; color: #e2e8f0; }
+        body.dark-mode .info-box strong { color: #38bdf8; }
+        body.dark-mode .btn-theme { background-color: #e2e8f0; color: #0f172a; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>แสดงข้อมูลสมาชิก (Lab 4.1b)</h2>
+    
+    <div id="displayArea"></div>
+
+    <button class="btn-theme" onclick="toggleTheme()">🌓 สลับโหมดสี (Light / Dark)</button>
+    <button class="btn-clear" onclick="clearData()">❌ ล้างข้อมูลทั้งหมด (Clear Storage)</button>
+
+    <a href="lab4_1a.html" class="btn-link">⬅️ กลับไปหน้าฟอร์มกรอกข้อมูล (Lab 4.1a)</a>
+</div>
+
+<script>
+    window.onload = function() {
+        renderProfile();
+        applySavedTheme();
+    };
+
+    function renderProfile() {
+        const displayArea = document.getElementById("displayArea");
+        const rawData = localStorage.getItem("userProfile");
+
+        if (rawData) {
+            try {
+                const userData = JSON.parse(rawData);
+                
+                // แก้บัคจุดนี้: เช็กเผื่อ userTheme ไม่มีค่า และเรียกใช้ toUpperCase() อย่างปลอดภัยภายใน block เงื่อนไขที่มีข้อมูลเท่านั้น
+                const themeName = userData.userTheme ? userData.userTheme.toUpperCase() : "NOT DEFINED";
+
+                displayArea.innerHTML = `
+                    <div class="info-box">
+                        <p><strong>👤 ชื่อ-นามสกุล:</strong> ${userData.name || '-'}</p>
+                        <p><strong>✉️ อีเมล:</strong> ${userData.email || '-'}</p>
+                        <p><strong>📞 เบอร์โทรศัพท์:</strong> ${userData.phone || '-'}</p>
+                        <p><strong>🎨 ค่า Theme ที่บันทึกไว้:</strong> ${themeName}</p>
+                    </div>
+                `;
+            } catch (e) {
+                // หาก JSON พัง ให้แสดงข้อความแจ้งเตือน
+                displayArea.innerHTML = `<p class="no-data">❌ ข้อมูลใน Storage เกิดข้อผิดพลาด</p>`;
+            }
+        } else {
+            // เมื่อเคลียร์ข้อมูลแล้ว หรือเปิดมาครั้งแรก จะเข้าเงื่อนไขนี้อย่างปลอดภัย ไม่พังแน่นอน
+            displayArea.innerHTML = `<p class="no-data">❌ ไม่พบข้อมูลใน LocalStorage กรุณากรอกข้อมูลก่อน</p>`;
+        }
+    }
+
+    function applySavedTheme() {
+        const savedTheme = localStorage.getItem("currentTheme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark-mode");
+        } else {
+            document.body.classList.remove("dark-mode");
+        }
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
+        if (document.body.classList.contains("dark-mode")) {
+            localStorage.setItem("currentTheme", "dark");
+        } else {
+            localStorage.setItem("currentTheme", "light");
+        }
+    }
+
+    function clearData() {
+        if (confirm("คุณต้องการลบข้อมูลทั้งหมดใน LocalStorage ใช่หรือไม่?")) {
+            localStorage.removeItem("userProfile");
+            localStorage.removeItem("currentTheme");
+            document.body.classList.remove("dark-mode");
+            alert("🧹 ล้างข้อมูลสำเร็จ!");
+            renderProfile(); 
+        }
+    }
+</script>
+
+</body>
+</html>

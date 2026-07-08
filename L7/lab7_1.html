@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 7.1: ระบบจัดการข้อมูลนักเรียน (Interactive Array Methods)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+        <h2 class="text-2xl font-bold text-slate-800 mb-2 text-center md:text-left">🎓 ระบบจัดการข้อมูลนักเรียน (Lab 7.1)</h2>
+        <p class="text-slate-500 text-sm mb-6 text-center md:text-left">วิชา CSI204: เลือกกดจัดการข้อมูลด้วยเครื่องมือ .filter() และ .reduce()</p>
+        
+        <div class="bg-slate-50 p-4 rounded-xl mb-6 flex flex-wrap gap-3 items-center">
+            <span class="font-semibold text-slate-700">⚙️ คำสั่ง Array:</span>
+            
+            <button onclick="showAllStudents()" class="bg-slate-600 hover:bg-slate-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition">
+                🌟 แสดงทั้งหมด (.map)
+            </button>
+
+            <button onclick="filterGradeA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition">
+                🔍 คัดกรองเฉพาะเกรด A (.filter)
+            </button>
+
+            <button onclick="calculateAverage()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition">
+                📊 คำนวณคะแนนเฉลี่ย (.reduce)
+            </button>
+        </div>
+
+        <div id="reduceResultBox" class="hidden mb-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex justify-between items-center">
+            <span class="text-indigo-800 font-medium">📊 คะแนนเฉลี่ยของนักเรียนที่แสดงอยู่ปัจจุบัน:</span>
+            <span id="avgScoreLabel" class="text-2xl font-bold text-indigo-600">0.00 ยะ</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-800 text-white text-sm font-medium">
+                        <th class="p-4">รหัสนักเรียน</th>
+                        <th class="p-4">ชื่อ-นามสกุล</th>
+                        <th class="p-4 text-center">คะแนน</th>
+                        <th class="p-4 text-center">เกรด</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody" class="divide-y divide-slate-200 text-slate-700 text-sm">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 1. Array Object นักเรียนเริ่มต้น
+        const students = [
+            { id: "680001", name: "นายธนพงศ์ เกิดศิริ", score: 85, grade: "A" },
+            { id: "680002", name: "นางสาวสมหญิง รักเรียน", score: 78, grade: "B" },
+            { id: "680003", name: "นายสมชาย ตั้งใจเรียน", score: 92, grade: "A" },
+            { id: "680004", name: "นางสาวใจดี มีสุข", score: 64, grade: "C" },
+            { id: "680005", name: "นายมานะ ขยันยิ่ง", score: 55, grade: "D" },
+            { id: "680006", name: "นางสาวปิติ ยินดี", score: 88, grade: "A" }
+        ];
+
+        // ตัวแปรเก็บสถานะข้อมูลที่กำลังแสดงอยู่บนหน้าจอ ณ ปัจจุบัน
+        let currentDisplayList = [...students];
+
+        // 2. ฟังก์ชัน Render ตารางโดยใช้ .map()
+        function renderTable(dataList) {
+            const tableRows = dataList.map(student => {
+                let gradeBadge = student.grade === "A" 
+                    ? `<span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full">A</span>`
+                    : `<span class="bg-slate-100 text-slate-600 text-xs font-semibold px-2.5 py-1 rounded-full">${student.grade}</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-mono font-medium text-slate-500">${student.id}</td>
+                        <td class="p-4 font-semibold text-slate-800">${student.name}</td>
+                        <td class="p-4 text-center font-medium text-indigo-600">${student.score}</td>
+                        <td class="p-4 text-center">${gradeBadge}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("studentTableBody").innerHTML = tableRows.join("");
+        }
+
+        // 3. ฟังก์ชัน Reset แสดงทั้งหมด
+        function showAllStudents() {
+            currentDisplayList = [...students]; // คืนค่าทั้งหมด
+            renderTable(currentDisplayList);
+            document.getElementById("reduceResultBox").classList.add("hidden"); // ซ่อนกล่องคำนวณ
+        }
+
+        // 4. ฟังก์ชันจัดการคัดกรองด้วย .filter() เมื่อกดปุ่ม
+        function filterGradeA() {
+            // ทำการกรองเฉพาะคนที่มีเกรดเท่ากับ "A"
+            currentDisplayList = students.filter(student => student.grade === "A");
+            
+            // วาดตารางใหม่ด้วยข้อมูลที่กรองแล้ว
+            renderTable(currentDisplayList);
+            document.getElementById("reduceResultBox").classList.add("hidden"); // ซ่อนกล่องคำนวณก่อน
+        }
+
+        // 5. ฟังก์ชันจัดการคำนวณค่าเฉลี่ยด้วย .reduce() เมื่อกดปุ่ม
+        function calculateAverage() {
+            if (currentDisplayList.length === 0) return;
+
+            // ใช้ .reduce() หาผลรวมคะแนนจากรายการที่แสดงอยู่บนหน้าจอขณะนั้น
+            const totalScore = currentDisplayList.reduce((sum, student) => sum + student.score, 0);
+            const average = totalScore / currentDisplayList.length;
+
+            // แสดงผลลัพธ์ลงในกล่องสถิติ
+            document.getElementById("avgScoreLabel").innerText = `${average.toFixed(2)} คะแนน`;
+            document.getElementById("reduceResultBox").classList.remove("hidden"); // เปิดกล่องแสดงผล
+        }
+
+        // โหลดข้อมูลขึ้นตารางครั้งแรกเมื่อเปิดหน้าเว็บ
+        window.onload = function() {
+            showAllStudents();
+        };
+    </script>
+
+</body>
+</html>

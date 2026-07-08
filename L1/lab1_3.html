@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 1.3: My Landing Page / Portfolio</title>
+    <style>
+        /* CSS สำหรับตกแต่งหน้าเว็บตามข้อกำหนด */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8; /* สีพื้นหลังหน้าเว็บ */
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* ตกแต่งส่วน Header */
+        header {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            text-align: center;
+            padding: 40px 20px; /* การใช้ padding */
+            margin-bottom: 30px; /* การใช้ margin */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        /* ตกแต่งส่วนเนื้อหาหลัก (Content) */
+        .container {
+            max-width: 600px;
+            background-color: #ffffff;
+            margin: 0 auto 40px auto; /* จัดกึ่งกลางหน้าจอ และเว้นระยะขอบล่าง */
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .profile-img {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%; /* ปรับรูปเป็นวงกลม */
+            object-fit: cover;
+            border: 4px solid #3b82f6;
+            margin-bottom: 20px;
+        }
+
+        .info-section h2 {
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .info-text {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            text-align: left;
+            background: #f8fafc;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* ตกแต่งส่วน Footer */
+        footer {
+            background-color: #0f172a;
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Welcome to My Portfolio</h1>
+        <p>วิชา CSI204 ดิจิทัลแพลตฟอร์มสำหรับพัฒนาซอฟต์แวร์</p>
+    </header>
+
+    <main class="container">
+        <img src="สกรีนช็อต 2026-05-31 222745.png" alt="Profile Image" class="profile-img">
+
+        <div class="info-section">
+            <h2>ข้อมูลนักศึกษา</h2>
+            <div class="info-text">
+                <strong>ชื่อ-นามสกุล:</strong> ธนพงศ์ เกิดศิริ
+            </div>
+            <div class="info-text">
+                <strong>รหัสนักศึกษา:</strong> 67087918 </div>
+            <div class="info-text">
+                <strong>สาขาวิชา:</strong> วิทยาการคอมพิวเตอร์และนวัตกรรมการพัฒนาซอฟต์แวร์
+            </div>
+            <div class="info-text">
+                <strong>คณะ:</strong> เทคโนโลยีสารสนเทศ มหาวิทยาลัยศรีปทุม
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 CSI204 | School of Information Technology, SPU</p>
+    </footer>
+
+</body>
+</html>

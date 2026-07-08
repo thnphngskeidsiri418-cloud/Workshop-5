@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 1.2: Pseudocode Implementation</title>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; padding: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h2 { color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+        h3 { color: #16a085; }
+        pre { background: #2d3436; color: #dfe6e9; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px; overflow-x: auto; }
+        .result-box { background: #e8f8f5; border-left: 4px solid #1abc9c; padding: 10px 15px; margin-top: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>Workshop #5 - Lab 1.2: การเขียน Pseudocode และทดสอบระบบ</h1>
+    </div>
+
+    <div class="card">
+        <h2>1. คำนวณพื้นที่วงกลม (Circle Area)</h2>
+        <h3>Pseudocode:</h3>
+        <pre>
+BEGIN
+    INPUT radius
+    SET PI = 3.14159
+    SET area = PI * radius * radius
+    OUTPUT "Area of the circle is: ", area
+END</pre>
+        <h3>ผลการทดสอบโปรแกรม (JavaScript):</h3>
+        <div class="result-box" id="area-output"></div>
+    </div>
+
+    <div class="card">
+        <h2>2. คำนวณเกรด (Grade Calculation)</h2>
+        <h3>Pseudocode:</h3>
+        <pre>
+BEGIN
+    INPUT score
+    IF score >= 80 THEN
+        OUTPUT "Grade: A"
+    ELSE IF score >= 70 THEN
+        OUTPUT "Grade: B"
+    ELSE IF score >= 60 THEN
+        OUTPUT "Grade: C"
+    ELSE IF score >= 50 THEN
+        OUTPUT "Grade: D"
+    ELSE
+        OUTPUT "Grade: F"
+    ENDIF
+END</pre>
+        <h3>ผลการทดสอบโปรแกรม (JavaScript):</h3>
+        <div class="result-box" id="grade-output"></div>
+    </div>
+
+    <div class="card">
+        <h2>3. หาค่าสูงสุดใน 3 จำนวน (Find Maximum Number)</h2>
+        <h3>Pseudocode:</h3>
+        <pre>
+BEGIN
+    INPUT num1, num2, num3
+    SET max = num1
+    IF num2 > max THEN
+        SET max = num2
+    ENDIF
+    IF num3 > max THEN
+        SET max = num3
+    ENDIF
+    OUTPUT "Maximum value is: ", max
+END</pre>
+        <h3>ผลการทดสอบโปรแกรม (JavaScript):</h3>
+        <div class="result-box" id="max-output"></div>
+    </div>
+</div>
+
+<script>
+    // --- 1. ทดสอบคำนวณพื้นที่วงกลม ---
+    let testRadius = 5; // กำหนดค่าทดสอบ r = 5
+    const PI = 3.14159;
+    let circleArea = PI * testRadius * testRadius;
+    
+    document.getElementById("area-output").innerHTML = `
+        <b>Input (รัศมี):</b> ${testRadius}<br>
+        <b>Output (พื้นที่วงกลม):</b> ${circleArea.toFixed(4)}
+    `;
+
+    // --- 2. ทดสอบคำนวณเกรด ---
+    let testScore = 78; // กำหนดคะแนนทดสอบ เช่น 78 คะแนน
+    let grade = "";
+    
+    if (testScore >= 80) { grade = "A"; }
+    else if (testScore >= 70) { grade = "B"; }
+    else if (testScore >= 60) { grade = "C"; }
+    else if (testScore >= 50) { grade = "D"; }
+    else { grade = "F"; }
+
+    document.getElementById("grade-output").innerHTML = `
+        <b>Input (คะแนนทดสอบ):</b> ${testScore} คะแนน<br>
+        <b>Output (เกรดที่ได้):</b> ${grade}
+    `;
+
+    // --- 3. ทดสอบหาค่าสูงสุดใน 3 จำนวน ---
+    let n1 = 45, n2 = 82, n3 = 67; // กำหนดชุดตัวเลขทดสอบ
+    let maxVal = n1;
+    
+    if (n2 > maxVal) { maxVal = n2; }
+    if (n3 > maxVal) { maxVal = n3; }
+
+    document.getElementById("max-output").innerHTML = `
+        <b>Input (ตัวเลข 3 จำนวน):</b> ${n1}, ${n2}, ${n3}<br>
+        <b>Output (ค่าสูงสุด):</b> ${maxVal}
+    `;
+
+    // แสดงประวัติลงใน Console เพื่อให้อาจารย์ตรวจเพิ่มเติมตามเงื่อนไข
+    console.log("--- Lab 1.2 Pseudocode Test Outputs ---");
+    console.log("Circle Area (r=5):", circleArea);
+    console.log("Grade (score=78):", grade);
+    console.log("Max Value (45, 82, 67):", maxVal);
+</script>
+
+</body>
+</html>
